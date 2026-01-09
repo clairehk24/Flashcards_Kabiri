@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flashcards</title>
+  <title>Flash Cards</title>
   <style>
     * {
       box-sizing: border-box;
@@ -61,7 +61,7 @@
     }
 
     .navbar-title {
-      font-size: 2.1em;
+      font-size: 2.6em;
       font-weight: 700;
       white-space: nowrap;
     }
@@ -358,11 +358,25 @@
       color: #ffffff;
       border-color: var(--red);
     }
+    /* View toggle buttons: blue by default, gold when selected */
+    #viewSelectionBtn,
+    #viewMyStudyBtn {
+      background: var(--blue);
+      color: #ffffff;
+      border-color: var(--blue);
+    }
+    #viewSelectionBtn.active,
+    #viewMyStudyBtn.active {
+      background: var(--gold);
+      color: var(--dark);
+      border-color: var(--gold);
+    }
+
   </style>
 </head>
 <body>
   <div class="navbar" role="banner">
-    <div class="navbar-title">Flashcards</div>
+    <div class="navbar-title">Flash Cards</div>
   </div>
   <div class="gold-banner" aria-hidden="true"></div>
 
@@ -382,7 +396,7 @@
     <section class="toolbar" aria-label="Filters and controls">
       <div class="row between">
         <div class="group" aria-label="Chapter selection">
-          <span class="label">Choose chapter:</span>
+          <span class="label">Choose Chapter:</span>
           <div class="group" id="chapterButtons"></div>
         </div>
         <div class="group" aria-label="Global controls">
@@ -394,7 +408,7 @@
 
       <div class="row between">
         <div class="group" aria-label="Category selection">
-          <span class="label">Choose category:</span>
+          <span class="label">Choose Category:</span>
           <div class="group" id="categoryButtons"></div>
         </div>
         <div class="group" aria-label="Deck actions">
@@ -410,8 +424,8 @@
         <div class="row between" style="margin-bottom:10px;">
           <div class="section-title">Study</div>
           <div class="group">
-            <button id="viewSelectionBtn" type="button" class="active">Selection deck</button>
-            <button id="viewMyStudyBtn" type="button" class="secondary">My study deck</button>
+            <button id="viewSelectionBtn" type="button" class="active">Selection Deck</button>
+            <button id="viewMyStudyBtn" type="button">My Study Deck</button>
           </div>
         </div>
 
@@ -421,7 +435,7 @@
 
         <div id="card" class="card" role="button" tabindex="0" aria-live="polite" aria-label="Flashcard. Click to flip.">
           <div class="badge" id="progress">0 / 0</div>
-          <div class="badge badgeRight" id="metaBadge">Selection deck</div>
+          <div class="badge badgeRight" id="metaBadge">Selection Deck</div>
           <div class="content" id="cardText">Choose a chapter + category to begin.</div>
           <div class="hint" id="cardHint"></div>
         </div>
@@ -439,7 +453,7 @@
 
       <section class="panel" aria-label="My Study deck">
         <div class="row between">
-          <div class="section-title">My Study deck</div>
+          <div class="section-title">My Study Deck</div>
           <div class="group">
             <span class="pill" id="myCountPill">0 cards</span>
             <button id="removeAllBtn" class="danger" type="button">Remove all</button>
