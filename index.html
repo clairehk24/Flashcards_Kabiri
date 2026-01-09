@@ -1,0 +1,1777 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flashcards</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Agenda", sans-serif;
+    }
+
+    :root {
+      --nav-height: 80px;
+      --gold-height: 15px;
+
+      --blue: #156498;
+      --gold: #efba45;
+      --dark: #2e2e30;
+      --bg: #f5f5f5;
+      --red: #d54d32;
+      --focus: #c5981d;
+
+      --panel-border: rgba(0,0,0,.12);
+      --shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+
+    body {
+      line-height: 1.6;
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--dark);
+      padding-top: calc(var(--nav-height) + var(--gold-height) + 14px);
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--nav-height);
+      background-color: var(--blue);
+      color: white;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+
+    .gold-banner {
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      width: 100%;
+      height: var(--gold-height);
+      background: var(--gold);
+      z-index: 999;
+    }
+
+    .navbar-title {
+      font-size: 2.1em;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .wrap {
+      /* Wider content area (less empty side space) */
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0 18px 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    header {
+      display: grid;
+      gap: 8px;
+      padding: 0 2px;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .directions {
+      background: #ffffff;
+      border: 2px solid var(--blue);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+    .directions-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: var(--blue);
+    }
+    .directions ul {
+      margin: 6px 0 0 18px;
+      padding: 0;
+    }
+    .directions li {
+      margin: 6px 0;
+      font-size: 1.05em;
+    }
+
+    .toolbar {
+      background: #ffffff;
+      border: 2px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .row.between {
+      justify-content: space-between;
+    }
+
+    .group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .label {
+      font-size: 1.05em;
+      font-weight: 700;
+      color: var(--dark);
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid var(--blue);
+      background: var(--blue);
+      color: white;
+      font-size: 1.05em;
+      font-weight: 700;
+      line-height: 1;
+    }
+    button:hover {
+      filter: brightness(1.03);
+    }
+
+    button.secondary {
+      background: #ffffff;
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    button.active {
+      background: var(--gold);
+      color: var(--dark);
+      border-color: var(--gold);
+    }
+
+    button.primary {
+      background: var(--dark);
+      color: white;
+      border-color: var(--dark);
+    }
+
+    button.danger {
+      background: #ffffff;
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    input:focus,
+    button:focus {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .pill {
+      font-size: 1em;
+      background: #ffffff;
+      border: 2px solid #808080;
+      padding: 8px 10px;
+      border-radius: 10px;
+      color: var(--dark);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .navbar-title { font-size: 1.3em; }
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 2px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      font-size: 1.2em;
+      margin: 0 0 10px;
+      color: var(--red);
+      background: var(--bg);
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 2px solid var(--red);
+    }
+
+    .card {
+      border-radius: 12px;
+      padding: 18px;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: #ffffff;
+      border: 2px solid #808080;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 0.95em;
+      color: var(--dark);
+      background: #ffffff;
+      border: 2px solid #808080;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .badgeRight {
+      left: auto;
+      right: 12px;
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .content {
+      font-size: 1.55em;
+      line-height: 1.35;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 1.05em;
+      color: var(--dark);
+    }
+
+    .sep {
+      height: 1px;
+      background: rgba(0,0,0,.15);
+      margin: 14px 0;
+      border: 0;
+    }
+
+    .spacer {
+      flex: 1 1 auto;
+    }
+
+    .list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: #ffffff;
+    }
+
+    .item strong {
+      display: block;
+      font-weight: 700;
+      font-size: 1.05em;
+    }
+
+    .item small {
+      color: #555;
+      display: block;
+      margin-top: 4px;
+      font-size: 1em;
+    }
+
+    .item .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    /* Make chapter/category button groups wrap nicely without dominating */
+    #chapterButtons button,
+    #categoryButtons button {
+      font-size: 1em;
+      padding: 10px 12px;
+    }
+
+    /* Distinguish category buttons slightly (outlined red when not active) */
+    #categoryButtons button {
+      background: #ffffff;
+      color: var(--red);
+      border-color: var(--red);
+    }
+    #categoryButtons button.active {
+      background: var(--red);
+      color: #ffffff;
+      border-color: var(--red);
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar" role="banner">
+    <div class="navbar-title">Flashcards</div>
+  </div>
+  <div class="gold-banner" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <header>
+      <div class="directions" aria-label="Directions">
+        <div class="directions-title">How to use</div>
+        <ul>
+          <li><strong>Step 1:</strong> Choose a <strong>Chapter</strong> and <strong>Category</strong> to load that deck.</li>
+          <li><strong>Step 2:</strong> Study the deck on the left. Click the card (or press <kbd>Space</kbd>) to flip. Use <kbd>←</kbd>/<kbd>→</kbd> for navigation.</li>
+          <li><strong>Step 3:</strong> When you see a card you want to practice more, click <strong>Add to My Study</strong> to build a custom deck (shown on the right).</li>
+          <li><strong>Reset Study Deck</strong> clears only your custom deck. <strong>Clear Saved Data</strong> clears saved selections and your custom deck.</li>
+        </ul>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Filters and controls">
+      <div class="row between">
+        <div class="group" aria-label="Chapter selection">
+          <span class="label">Choose chapter:</span>
+          <div class="group" id="chapterButtons"></div>
+        </div>
+        <div class="group" aria-label="Global controls">
+          <button id="shuffleBtn" class="primary" type="button">Shuffle</button>
+          <button id="resetDeckBtn" type="button">Reset Study Deck</button>
+          <button id="clearStateBtn" class="danger" type="button">Clear Saved Data</button>
+        </div>
+      </div>
+
+      <div class="row between">
+        <div class="group" aria-label="Category selection">
+          <span class="label">Choose category:</span>
+          <div class="group" id="categoryButtons"></div>
+        </div>
+        <div class="group" aria-label="Deck actions">
+          <span class="pill" id="filterPill">All chapters • Medical terms</span>
+          <span class="pill" id="countsPill">0 in selection • 0 in My Study</span>
+          <button id="addSelectionBtn" class="primary" type="button">Add Selection to My Study</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <section class="panel" aria-label="Study flashcards">
+        <div class="row between" style="margin-bottom:10px;">
+          <h2 style="margin:0;">Study</h2>
+          <div class="group">
+            <button id="viewSelectionBtn" type="button" class="active">Selection deck</button>
+            <button id="viewMyStudyBtn" type="button" class="secondary">My study deck</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:10px;">
+          <span class="pill" id="viewPill">Viewing: Selection deck</span>
+        </div>
+
+        <div id="card" class="card" role="button" tabindex="0" aria-live="polite" aria-label="Flashcard. Click to flip.">
+          <div class="badge" id="progress">0 / 0</div>
+          <div class="badge badgeRight" id="metaBadge">Selection deck</div>
+          <div class="content" id="cardText">Choose a chapter + category to begin.</div>
+          <div class="hint" id="cardHint"></div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="row" aria-label="Navigation controls">
+          <button id="prevBtn" type="button" class="secondary">◀ Prev</button>
+          <button id="flipBtn" type="button" class="primary">Flip</button>
+          <button id="nextBtn" type="button" class="secondary">Next ▶</button>
+          <span class="spacer"></span>
+          <button id="toggleStudyBtn" type="button" class="primary">Add to My Study</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="My Study deck">
+        <div class="row between">
+          <h2 style="margin:0;">My Study deck</h2>
+          <div class="group">
+            <span class="pill" id="myCountPill">0 cards</span>
+            <button id="removeAllBtn" class="danger" type="button">Remove all</button>
+          </div>
+        </div>
+
+        <div class="sub" style="margin-top:10px;">
+          Cards you add will appear here. Use <strong>View</strong> to study your custom deck.
+        </div>
+
+        <div class="list" id="studyList" aria-label="My Study deck list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const ALL_CARDS = [
+  {
+    "id": "ch1-abbreviations-1",
+    "chapter": 1,
+    "category": "Abbreviations",
+    "front": "Chapter 1 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-abbreviations-2",
+    "chapter": 1,
+    "category": "Abbreviations",
+    "front": "Chapter 1 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-wordparts-1",
+    "chapter": 1,
+    "category": "Word parts",
+    "front": "Chapter 1 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-wordparts-2",
+    "chapter": 1,
+    "category": "Word parts",
+    "front": "Chapter 1 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-medicalterms-1",
+    "chapter": 1,
+    "category": "Medical terms",
+    "front": "Chapter 1 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-medicalterms-2",
+    "chapter": 1,
+    "category": "Medical terms",
+    "front": "Chapter 1 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-medicationclasses-1",
+    "chapter": 1,
+    "category": "Medication Classes",
+    "front": "Chapter 1 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-medicationclasses-2",
+    "chapter": 1,
+    "category": "Medication Classes",
+    "front": "Chapter 1 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-commonsuffixes-1",
+    "chapter": 1,
+    "category": "Common Suffixes",
+    "front": "Chapter 1 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch1-commonsuffixes-2",
+    "chapter": 1,
+    "category": "Common Suffixes",
+    "front": "Chapter 1 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 1\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-abbreviations-1",
+    "chapter": 2,
+    "category": "Abbreviations",
+    "front": "Chapter 2 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-abbreviations-2",
+    "chapter": 2,
+    "category": "Abbreviations",
+    "front": "Chapter 2 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-wordparts-1",
+    "chapter": 2,
+    "category": "Word parts",
+    "front": "Chapter 2 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-wordparts-2",
+    "chapter": 2,
+    "category": "Word parts",
+    "front": "Chapter 2 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-medicalterms-1",
+    "chapter": 2,
+    "category": "Medical terms",
+    "front": "Chapter 2 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-medicalterms-2",
+    "chapter": 2,
+    "category": "Medical terms",
+    "front": "Chapter 2 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-medicationclasses-1",
+    "chapter": 2,
+    "category": "Medication Classes",
+    "front": "Chapter 2 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-medicationclasses-2",
+    "chapter": 2,
+    "category": "Medication Classes",
+    "front": "Chapter 2 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-commonsuffixes-1",
+    "chapter": 2,
+    "category": "Common Suffixes",
+    "front": "Chapter 2 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch2-commonsuffixes-2",
+    "chapter": 2,
+    "category": "Common Suffixes",
+    "front": "Chapter 2 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 2\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-abbreviations-1",
+    "chapter": 3,
+    "category": "Abbreviations",
+    "front": "Chapter 3 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-abbreviations-2",
+    "chapter": 3,
+    "category": "Abbreviations",
+    "front": "Chapter 3 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-wordparts-1",
+    "chapter": 3,
+    "category": "Word parts",
+    "front": "Chapter 3 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-wordparts-2",
+    "chapter": 3,
+    "category": "Word parts",
+    "front": "Chapter 3 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-medicalterms-1",
+    "chapter": 3,
+    "category": "Medical terms",
+    "front": "Chapter 3 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-medicalterms-2",
+    "chapter": 3,
+    "category": "Medical terms",
+    "front": "Chapter 3 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-medicationclasses-1",
+    "chapter": 3,
+    "category": "Medication Classes",
+    "front": "Chapter 3 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-medicationclasses-2",
+    "chapter": 3,
+    "category": "Medication Classes",
+    "front": "Chapter 3 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-commonsuffixes-1",
+    "chapter": 3,
+    "category": "Common Suffixes",
+    "front": "Chapter 3 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch3-commonsuffixes-2",
+    "chapter": 3,
+    "category": "Common Suffixes",
+    "front": "Chapter 3 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 3\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-abbreviations-1",
+    "chapter": 4,
+    "category": "Abbreviations",
+    "front": "Chapter 4 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-abbreviations-2",
+    "chapter": 4,
+    "category": "Abbreviations",
+    "front": "Chapter 4 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-wordparts-1",
+    "chapter": 4,
+    "category": "Word parts",
+    "front": "Chapter 4 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-wordparts-2",
+    "chapter": 4,
+    "category": "Word parts",
+    "front": "Chapter 4 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-medicalterms-1",
+    "chapter": 4,
+    "category": "Medical terms",
+    "front": "Chapter 4 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-medicalterms-2",
+    "chapter": 4,
+    "category": "Medical terms",
+    "front": "Chapter 4 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-medicationclasses-1",
+    "chapter": 4,
+    "category": "Medication Classes",
+    "front": "Chapter 4 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-medicationclasses-2",
+    "chapter": 4,
+    "category": "Medication Classes",
+    "front": "Chapter 4 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-commonsuffixes-1",
+    "chapter": 4,
+    "category": "Common Suffixes",
+    "front": "Chapter 4 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch4-commonsuffixes-2",
+    "chapter": 4,
+    "category": "Common Suffixes",
+    "front": "Chapter 4 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 4\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-abbreviations-1",
+    "chapter": 5,
+    "category": "Abbreviations",
+    "front": "Chapter 5 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-abbreviations-2",
+    "chapter": 5,
+    "category": "Abbreviations",
+    "front": "Chapter 5 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-wordparts-1",
+    "chapter": 5,
+    "category": "Word parts",
+    "front": "Chapter 5 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-wordparts-2",
+    "chapter": 5,
+    "category": "Word parts",
+    "front": "Chapter 5 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-medicalterms-1",
+    "chapter": 5,
+    "category": "Medical terms",
+    "front": "Chapter 5 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-medicalterms-2",
+    "chapter": 5,
+    "category": "Medical terms",
+    "front": "Chapter 5 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-medicationclasses-1",
+    "chapter": 5,
+    "category": "Medication Classes",
+    "front": "Chapter 5 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-medicationclasses-2",
+    "chapter": 5,
+    "category": "Medication Classes",
+    "front": "Chapter 5 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-commonsuffixes-1",
+    "chapter": 5,
+    "category": "Common Suffixes",
+    "front": "Chapter 5 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch5-commonsuffixes-2",
+    "chapter": 5,
+    "category": "Common Suffixes",
+    "front": "Chapter 5 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 5\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-abbreviations-1",
+    "chapter": 6,
+    "category": "Abbreviations",
+    "front": "Chapter 6 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-abbreviations-2",
+    "chapter": 6,
+    "category": "Abbreviations",
+    "front": "Chapter 6 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-wordparts-1",
+    "chapter": 6,
+    "category": "Word parts",
+    "front": "Chapter 6 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-wordparts-2",
+    "chapter": 6,
+    "category": "Word parts",
+    "front": "Chapter 6 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-medicalterms-1",
+    "chapter": 6,
+    "category": "Medical terms",
+    "front": "Chapter 6 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-medicalterms-2",
+    "chapter": 6,
+    "category": "Medical terms",
+    "front": "Chapter 6 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-medicationclasses-1",
+    "chapter": 6,
+    "category": "Medication Classes",
+    "front": "Chapter 6 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-medicationclasses-2",
+    "chapter": 6,
+    "category": "Medication Classes",
+    "front": "Chapter 6 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-commonsuffixes-1",
+    "chapter": 6,
+    "category": "Common Suffixes",
+    "front": "Chapter 6 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch6-commonsuffixes-2",
+    "chapter": 6,
+    "category": "Common Suffixes",
+    "front": "Chapter 6 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 6\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-abbreviations-1",
+    "chapter": 7,
+    "category": "Abbreviations",
+    "front": "Chapter 7 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-abbreviations-2",
+    "chapter": 7,
+    "category": "Abbreviations",
+    "front": "Chapter 7 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-wordparts-1",
+    "chapter": 7,
+    "category": "Word parts",
+    "front": "Chapter 7 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-wordparts-2",
+    "chapter": 7,
+    "category": "Word parts",
+    "front": "Chapter 7 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-medicalterms-1",
+    "chapter": 7,
+    "category": "Medical terms",
+    "front": "Chapter 7 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-medicalterms-2",
+    "chapter": 7,
+    "category": "Medical terms",
+    "front": "Chapter 7 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-medicationclasses-1",
+    "chapter": 7,
+    "category": "Medication Classes",
+    "front": "Chapter 7 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-medicationclasses-2",
+    "chapter": 7,
+    "category": "Medication Classes",
+    "front": "Chapter 7 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-commonsuffixes-1",
+    "chapter": 7,
+    "category": "Common Suffixes",
+    "front": "Chapter 7 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch7-commonsuffixes-2",
+    "chapter": 7,
+    "category": "Common Suffixes",
+    "front": "Chapter 7 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 7\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-abbreviations-1",
+    "chapter": 8,
+    "category": "Abbreviations",
+    "front": "Chapter 8 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-abbreviations-2",
+    "chapter": 8,
+    "category": "Abbreviations",
+    "front": "Chapter 8 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-wordparts-1",
+    "chapter": 8,
+    "category": "Word parts",
+    "front": "Chapter 8 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-wordparts-2",
+    "chapter": 8,
+    "category": "Word parts",
+    "front": "Chapter 8 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-medicalterms-1",
+    "chapter": 8,
+    "category": "Medical terms",
+    "front": "Chapter 8 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-medicalterms-2",
+    "chapter": 8,
+    "category": "Medical terms",
+    "front": "Chapter 8 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-medicationclasses-1",
+    "chapter": 8,
+    "category": "Medication Classes",
+    "front": "Chapter 8 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-medicationclasses-2",
+    "chapter": 8,
+    "category": "Medication Classes",
+    "front": "Chapter 8 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-commonsuffixes-1",
+    "chapter": 8,
+    "category": "Common Suffixes",
+    "front": "Chapter 8 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch8-commonsuffixes-2",
+    "chapter": 8,
+    "category": "Common Suffixes",
+    "front": "Chapter 8 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 8\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-abbreviations-1",
+    "chapter": 9,
+    "category": "Abbreviations",
+    "front": "Chapter 9 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-abbreviations-2",
+    "chapter": 9,
+    "category": "Abbreviations",
+    "front": "Chapter 9 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-wordparts-1",
+    "chapter": 9,
+    "category": "Word parts",
+    "front": "Chapter 9 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-wordparts-2",
+    "chapter": 9,
+    "category": "Word parts",
+    "front": "Chapter 9 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-medicalterms-1",
+    "chapter": 9,
+    "category": "Medical terms",
+    "front": "Chapter 9 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-medicalterms-2",
+    "chapter": 9,
+    "category": "Medical terms",
+    "front": "Chapter 9 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-medicationclasses-1",
+    "chapter": 9,
+    "category": "Medication Classes",
+    "front": "Chapter 9 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-medicationclasses-2",
+    "chapter": 9,
+    "category": "Medication Classes",
+    "front": "Chapter 9 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-commonsuffixes-1",
+    "chapter": 9,
+    "category": "Common Suffixes",
+    "front": "Chapter 9 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch9-commonsuffixes-2",
+    "chapter": 9,
+    "category": "Common Suffixes",
+    "front": "Chapter 9 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 9\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-abbreviations-1",
+    "chapter": 10,
+    "category": "Abbreviations",
+    "front": "Chapter 10 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-abbreviations-2",
+    "chapter": 10,
+    "category": "Abbreviations",
+    "front": "Chapter 10 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-wordparts-1",
+    "chapter": 10,
+    "category": "Word parts",
+    "front": "Chapter 10 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-wordparts-2",
+    "chapter": 10,
+    "category": "Word parts",
+    "front": "Chapter 10 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-medicalterms-1",
+    "chapter": 10,
+    "category": "Medical terms",
+    "front": "Chapter 10 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-medicalterms-2",
+    "chapter": 10,
+    "category": "Medical terms",
+    "front": "Chapter 10 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-medicationclasses-1",
+    "chapter": 10,
+    "category": "Medication Classes",
+    "front": "Chapter 10 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-medicationclasses-2",
+    "chapter": 10,
+    "category": "Medication Classes",
+    "front": "Chapter 10 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-commonsuffixes-1",
+    "chapter": 10,
+    "category": "Common Suffixes",
+    "front": "Chapter 10 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch10-commonsuffixes-2",
+    "chapter": 10,
+    "category": "Common Suffixes",
+    "front": "Chapter 10 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 10\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-abbreviations-1",
+    "chapter": 11,
+    "category": "Abbreviations",
+    "front": "Chapter 11 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-abbreviations-2",
+    "chapter": 11,
+    "category": "Abbreviations",
+    "front": "Chapter 11 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-wordparts-1",
+    "chapter": 11,
+    "category": "Word parts",
+    "front": "Chapter 11 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-wordparts-2",
+    "chapter": 11,
+    "category": "Word parts",
+    "front": "Chapter 11 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-medicalterms-1",
+    "chapter": 11,
+    "category": "Medical terms",
+    "front": "Chapter 11 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-medicalterms-2",
+    "chapter": 11,
+    "category": "Medical terms",
+    "front": "Chapter 11 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-medicationclasses-1",
+    "chapter": 11,
+    "category": "Medication Classes",
+    "front": "Chapter 11 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-medicationclasses-2",
+    "chapter": 11,
+    "category": "Medication Classes",
+    "front": "Chapter 11 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-commonsuffixes-1",
+    "chapter": 11,
+    "category": "Common Suffixes",
+    "front": "Chapter 11 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch11-commonsuffixes-2",
+    "chapter": 11,
+    "category": "Common Suffixes",
+    "front": "Chapter 11 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 11\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-abbreviations-1",
+    "chapter": 12,
+    "category": "Abbreviations",
+    "front": "Chapter 12 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-abbreviations-2",
+    "chapter": 12,
+    "category": "Abbreviations",
+    "front": "Chapter 12 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-wordparts-1",
+    "chapter": 12,
+    "category": "Word parts",
+    "front": "Chapter 12 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-wordparts-2",
+    "chapter": 12,
+    "category": "Word parts",
+    "front": "Chapter 12 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-medicalterms-1",
+    "chapter": 12,
+    "category": "Medical terms",
+    "front": "Chapter 12 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-medicalterms-2",
+    "chapter": 12,
+    "category": "Medical terms",
+    "front": "Chapter 12 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-medicationclasses-1",
+    "chapter": 12,
+    "category": "Medication Classes",
+    "front": "Chapter 12 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-medicationclasses-2",
+    "chapter": 12,
+    "category": "Medication Classes",
+    "front": "Chapter 12 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-commonsuffixes-1",
+    "chapter": 12,
+    "category": "Common Suffixes",
+    "front": "Chapter 12 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch12-commonsuffixes-2",
+    "chapter": 12,
+    "category": "Common Suffixes",
+    "front": "Chapter 12 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 12\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-abbreviations-1",
+    "chapter": 13,
+    "category": "Abbreviations",
+    "front": "Chapter 13 • Abbreviations • Example 1",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Abbreviations\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-abbreviations-2",
+    "chapter": 13,
+    "category": "Abbreviations",
+    "front": "Chapter 13 • Abbreviations • Example 2",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Abbreviations\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-wordparts-1",
+    "chapter": 13,
+    "category": "Word parts",
+    "front": "Chapter 13 • Word parts • Example 1",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Word parts\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-wordparts-2",
+    "chapter": 13,
+    "category": "Word parts",
+    "front": "Chapter 13 • Word parts • Example 2",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Word parts\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-medicalterms-1",
+    "chapter": 13,
+    "category": "Medical terms",
+    "front": "Chapter 13 • Medical terms • Example 1",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Medical terms\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-medicalterms-2",
+    "chapter": 13,
+    "category": "Medical terms",
+    "front": "Chapter 13 • Medical terms • Example 2",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Medical terms\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-medicationclasses-1",
+    "chapter": 13,
+    "category": "Medication Classes",
+    "front": "Chapter 13 • Medication Classes • Example 1",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Medication Classes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-medicationclasses-2",
+    "chapter": 13,
+    "category": "Medication Classes",
+    "front": "Chapter 13 • Medication Classes • Example 2",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Medication Classes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-commonsuffixes-1",
+    "chapter": 13,
+    "category": "Common Suffixes",
+    "front": "Chapter 13 • Common Suffixes • Example 1",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Common Suffixes\\n- Example: 1\\n\\n(Replace with real term/definition later.)"
+  },
+  {
+    "id": "ch13-commonsuffixes-2",
+    "chapter": 13,
+    "category": "Common Suffixes",
+    "front": "Chapter 13 • Common Suffixes • Example 2",
+    "back": "Back of card\\n- Chapter: 13\\n- Category: Common Suffixes\\n- Example: 2\\n\\n(Replace with real term/definition later.)"
+  }
+];
+  </script>
+
+  <script>
+(() => {
+  const CHAPTERS = ["All", ...Array.from({length: 13}, (_,i)=> i+1)];
+  const CATEGORIES = [
+    "Abbreviations",
+    "Word parts",
+    "Medical terms",
+    "Medication Classes",
+    "Common Suffixes"
+  ];
+
+  const STATE_KEY = "flashcards_builder_state_v4";
+
+  let selectedChapter = "All";
+  let selectedCategory = "Medical terms";
+
+  let myStudyIds = [];
+  let viewMode = "selection"; // selection | mystudy
+
+  let order = [];
+  let i = 0;
+  let showingBack = false;
+
+  const elCard = document.getElementById("card");
+  const elCardText = document.getElementById("cardText");
+  const elCardHint = document.getElementById("cardHint");
+  const elProgress = document.getElementById("progress");
+  const elMetaBadge = document.getElementById("metaBadge");
+
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const flipBtn = document.getElementById("flipBtn");
+  const toggleStudyBtn = document.getElementById("toggleStudyBtn");
+
+  const shuffleBtn = document.getElementById("shuffleBtn");
+  const resetDeckBtn = document.getElementById("resetDeckBtn");
+  const clearStateBtn = document.getElementById("clearStateBtn");
+
+  const chapterButtons = document.getElementById("chapterButtons");
+  const categoryButtons = document.getElementById("categoryButtons");
+
+  const filterPill = document.getElementById("filterPill");
+  const countsPill = document.getElementById("countsPill");
+  const myCountPill = document.getElementById("myCountPill");
+
+  const addSelectionBtn = document.getElementById("addSelectionBtn");
+
+  const studyList = document.getElementById("studyList");
+  const removeAllBtn = document.getElementById("removeAllBtn");
+
+  const viewPill = document.getElementById("viewPill");
+  const viewSelectionBtn = document.getElementById("viewSelectionBtn");
+  const viewMyStudyBtn = document.getElementById("viewMyStudyBtn");
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STATE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.selectedChapter !== undefined) selectedChapter = s.selectedChapter;
+      if (typeof s.selectedCategory === "string") selectedCategory = s.selectedCategory;
+      if (Array.isArray(s.myStudyIds)) myStudyIds = s.myStudyIds.filter(x => typeof x === "string");
+      if (s.viewMode === "selection" || s.viewMode === "mystudy") viewMode = s.viewMode;
+    } catch {}
+  }
+
+  function saveState() {
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      selectedChapter,
+      selectedCategory,
+      myStudyIds,
+      viewMode
+    }));
+  }
+
+  function getSelectionDeck() {
+    return ALL_CARDS.filter(c => {
+      const chapterOk = (selectedChapter === "All") || (c.chapter === selectedChapter);
+      const catOk = c.category === selectedCategory;
+      return chapterOk && catOk;
+    });
+  }
+
+  function getMyStudyDeck() {
+    const byId = new Map(ALL_CARDS.map(c => [c.id, c]));
+    return myStudyIds.map(id => byId.get(id)).filter(Boolean);
+  }
+
+  function getActiveDeck() {
+    return (viewMode === "mystudy") ? getMyStudyDeck() : getSelectionDeck();
+  }
+
+  function rebuildOrder(keepCardId = null) {
+    const deck = getActiveDeck();
+    order = deck.map((_, idx) => idx);
+
+    if (!deck.length) {
+      i = 0;
+      showingBack = false;
+      return;
+    }
+
+    if (keepCardId) {
+      const idx = deck.findIndex(c => c.id === keepCardId);
+      i = (idx >= 0) ? idx : 0;
+    } else {
+      i = 0;
+    }
+
+    showingBack = false;
+  }
+
+  function shuffleOrder() {
+    for (let j = order.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [order[j], order[k]] = [order[k], order[j]];
+    }
+    i = 0;
+    showingBack = false;
+  }
+
+  function currentCard() {
+    const deck = getActiveDeck();
+    if (!deck.length) return null;
+    const idx = order[i] ?? 0;
+    return deck[idx] ?? null;
+  }
+
+  function setCardFace(showBack) {
+    const c = currentCard();
+    showingBack = showBack;
+
+    viewSelectionBtn.classList.toggle("active", viewMode === "selection");
+    viewMyStudyBtn.classList.toggle("active", viewMode === "mystudy");
+    viewPill.textContent = `Viewing: ${viewMode === "mystudy" ? "My study deck" : "Selection deck"}`;
+
+    if (!c) {
+      elMetaBadge.textContent = viewMode === "mystudy" ? "My study deck" : "Selection deck";
+      elProgress.textContent = "0 / 0";
+      elCardText.textContent = (viewMode === "mystudy")
+        ? "Your custom study deck is empty. Add cards while viewing a chapter/category selection."
+        : "Choose a chapter + category to begin.";
+      elCardHint.textContent = "Click “Add to My Study” while reviewing cards to build a custom deck.";
+      toggleStudyBtn.disabled = true;
+      toggleStudyBtn.textContent = "Add to My Study";
+      toggleStudyBtn.classList.remove("danger");
+      toggleStudyBtn.classList.remove("primary");
+      return;
+    }
+
+    const deckLen = getActiveDeck().length;
+    elMetaBadge.textContent = `Ch. ${c.chapter} • ${c.category}`;
+    elProgress.textContent = `${i + 1} / ${deckLen}`;
+    elCardText.textContent = showBack ? c.back : c.front;
+    elCardHint.textContent = showBack ? "Back (definition)" : "Front (term)";
+
+    const inMyStudy = myStudyIds.includes(c.id);
+    toggleStudyBtn.disabled = false;
+    toggleStudyBtn.textContent = inMyStudy ? "Remove from My Study" : "Add to My Study";
+    toggleStudyBtn.classList.toggle("primary", !inMyStudy);
+    toggleStudyBtn.classList.toggle("danger", inMyStudy);
+  }
+
+  function clampIndex() {
+    const n = order.length;
+    if (!n) { i = 0; return; }
+    if (i < 0) i = 0;
+    if (i >= n) i = n - 1;
+  }
+
+  function go(delta) {
+    if (!order.length) return;
+    i += delta;
+    clampIndex();
+    showingBack = false;
+    render();
+  }
+
+  function toggleCurrentToMyStudy() {
+    const c = currentCard();
+    if (!c) return;
+
+    const inMyStudy = myStudyIds.includes(c.id);
+    if (inMyStudy) {
+      myStudyIds = myStudyIds.filter(id => id !== c.id);
+      if (viewMode === "mystudy") rebuildOrder(null);
+    } else {
+      myStudyIds.push(c.id);
+    }
+    saveState();
+    render();
+  }
+
+  function addSelectionToMyStudy() {
+    const filtered = getSelectionDeck();
+    const set = new Set(myStudyIds);
+    filtered.forEach(c => set.add(c.id));
+    myStudyIds = Array.from(set);
+    saveState();
+    render();
+  }
+
+  function resetMyStudyDeck() {
+    myStudyIds = [];
+    saveState();
+    if (viewMode === "mystudy") rebuildOrder(null);
+    render();
+  }
+
+  function clearSavedState() {
+    localStorage.removeItem(STATE_KEY);
+    selectedChapter = "All";
+    selectedCategory = "Medical terms";
+    myStudyIds = [];
+    viewMode = "selection";
+    rebuildOrder(null);
+    render();
+  }
+
+  function setViewMode(mode) {
+    const keepId = currentCard()?.id ?? null;
+    viewMode = mode;
+    saveState();
+    rebuildOrder(keepId);
+    render();
+  }
+
+  function renderButtons() {
+    chapterButtons.innerHTML = "";
+    CHAPTERS.forEach(ch => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = (ch === "All") ? "All chapters" : `Chapter ${ch}`;
+      b.className = (selectedChapter === ch) ? "active" : "";
+      b.onclick = () => {
+        selectedChapter = ch;
+        saveState();
+        if (viewMode === "selection") rebuildOrder(null);
+        render();
+      };
+      chapterButtons.appendChild(b);
+    });
+
+    categoryButtons.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = cat;
+      b.className = (selectedCategory === cat) ? "active" : "";
+      b.onclick = () => {
+        selectedCategory = cat;
+        saveState();
+        if (viewMode === "selection") rebuildOrder(null);
+        render();
+      };
+      categoryButtons.appendChild(b);
+    });
+  }
+
+  function renderStudyList() {
+    studyList.innerHTML = "";
+    const deck = getMyStudyDeck();
+
+    myCountPill.textContent = `${deck.length} card${deck.length === 1 ? "" : "s"}`;
+    removeAllBtn.disabled = deck.length === 0;
+    resetDeckBtn.disabled = deck.length === 0;
+
+    if (!deck.length) {
+      const div = document.createElement("div");
+      div.className = "sub";
+      div.textContent = "No cards added yet.";
+      studyList.appendChild(div);
+      return;
+    }
+
+    deck.forEach((c) => {
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const left = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = c.front.length > 70 ? c.front.slice(0, 70) + "…" : c.front;
+      const small = document.createElement("small");
+      small.textContent = `Ch. ${c.chapter} • ${c.category}`;
+      left.appendChild(title);
+      left.appendChild(small);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const viewBtn = document.createElement("button");
+      viewBtn.type = "button";
+      viewBtn.textContent = "View";
+      viewBtn.className = "primary";
+      viewBtn.onclick = () => {
+        setViewMode("mystudy");
+        const active = getActiveDeck();
+        const pos = active.findIndex(x => x.id === c.id);
+        if (pos >= 0) {
+          i = pos;
+          showingBack = false;
+          render();
+        }
+      };
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "Remove";
+      removeBtn.className = "danger";
+      removeBtn.onclick = () => {
+        myStudyIds = myStudyIds.filter(id => id !== c.id);
+        saveState();
+        if (viewMode === "mystudy") rebuildOrder(null);
+        render();
+      };
+
+      actions.appendChild(viewBtn);
+      actions.appendChild(removeBtn);
+
+      row.appendChild(left);
+      row.appendChild(actions);
+      studyList.appendChild(row);
+    });
+  }
+
+  function renderPills() {
+    const chLabel = (selectedChapter === "All") ? "All chapters" : `Chapter ${selectedChapter}`;
+    filterPill.textContent = `${chLabel} • ${selectedCategory}`;
+
+    const selectionCount = getSelectionDeck().length;
+    const myCount = getMyStudyDeck().length;
+    countsPill.textContent = `${selectionCount} in selection • ${myCount} in My Study`;
+
+    addSelectionBtn.disabled = selectionCount === 0;
+  }
+
+  function renderControls() {
+    const activeLen = getActiveDeck().length;
+    const hasActive = activeLen > 0;
+
+    prevBtn.disabled = !hasActive || i === 0;
+    nextBtn.disabled = !hasActive || i === order.length - 1;
+    flipBtn.disabled = !hasActive;
+    shuffleBtn.disabled = !hasActive;
+
+    toggleStudyBtn.disabled = !hasActive;
+  }
+
+  function render() {
+    const active = getActiveDeck();
+    if (order.length !== active.length) {
+      rebuildOrder(currentCard()?.id ?? null);
+    }
+
+    renderButtons();
+    renderPills();
+    renderStudyList();
+    renderControls();
+    setCardFace(showingBack);
+  }
+
+  // Events
+  elCard.addEventListener("click", () => {
+    if (!getActiveDeck().length) return;
+    showingBack = !showingBack;
+    setCardFace(showingBack);
+  });
+
+  elCard.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); elCard.click(); }
+  });
+
+  prevBtn.addEventListener("click", () => go(-1));
+  nextBtn.addEventListener("click", () => go(1));
+  flipBtn.addEventListener("click", () => elCard.click());
+
+  toggleStudyBtn.addEventListener("click", () => toggleCurrentToMyStudy());
+
+  shuffleBtn.addEventListener("click", () => { shuffleOrder(); render(); });
+  resetDeckBtn.addEventListener("click", () => resetMyStudyDeck());
+  clearStateBtn.addEventListener("click", () => clearSavedState());
+
+  addSelectionBtn.addEventListener("click", () => addSelectionToMyStudy());
+  removeAllBtn.addEventListener("click", () => resetMyStudyDeck());
+
+  viewSelectionBtn.addEventListener("click", () => setViewMode("selection"));
+  viewMyStudyBtn.addEventListener("click", () => setViewMode("mystudy"));
+
+  // Global keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    const tag = (document.activeElement?.tagName || "").toLowerCase();
+    const typing = tag === "textarea" || tag === "input" || tag === "select";
+    if (typing) return;
+
+    if (e.key === " " || e.code === "Space") {
+      e.preventDefault();
+      elCard.click();
+    } else if (e.key === "ArrowLeft") {
+      go(-1);
+    } else if (e.key === "ArrowRight") {
+      go(1);
+    }
+  });
+
+  // Init
+  loadState();
+  rebuildOrder(null);
+  render();
+})();
+  </script>
+</body>
+</html>
