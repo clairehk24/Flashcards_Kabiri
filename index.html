@@ -100,6 +100,13 @@
       margin: 0 0 6px;
       color: var(--blue);
     }
+    .section-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--blue);
+      margin: 0;
+      padding: 0;
+    }
     .directions ul {
       margin: 6px 0 0 18px;
       padding: 0;
@@ -224,7 +231,7 @@
       box-shadow: var(--shadow);
     }
 
-    .panel h2 {
+    .panel .legacy-h2 {
       font-size: 1.2em;
       margin: 0 0 10px;
       color: var(--red);
@@ -401,7 +408,7 @@
     <section class="grid">
       <section class="panel" aria-label="Study flashcards">
         <div class="row between" style="margin-bottom:10px;">
-          <h2 style="margin:0;">Study</h2>
+          <div class="section-title">Study</div>
           <div class="group">
             <button id="viewSelectionBtn" type="button" class="active">Selection deck</button>
             <button id="viewMyStudyBtn" type="button" class="secondary">My study deck</button>
@@ -432,7 +439,7 @@
 
       <section class="panel" aria-label="My Study deck">
         <div class="row between">
-          <h2 style="margin:0;">My Study deck</h2>
+          <div class="section-title">My Study deck</div>
           <div class="group">
             <span class="pill" id="myCountPill">0 cards</span>
             <button id="removeAllBtn" class="danger" type="button">Remove all</button>
@@ -1595,7 +1602,7 @@
     CHAPTERS.forEach(ch => {
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = (ch === "All") ? "All chapters" : `Chapter ${ch}`;
+      b.textContent = (ch === "All") ? "All chapters" : `${ch}`;
       b.className = (selectedChapter === ch) ? "active" : "";
       b.onclick = () => {
         selectedChapter = ch;
